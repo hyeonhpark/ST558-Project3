@@ -7,6 +7,8 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
 ```
 
 ## Data Reading/Manipulation  
@@ -15,5 +17,118 @@ knitr::opts_chunk$set(echo = TRUE)
 
 URL <- "https://archive.ics.uci.edu/ml/machine-learning-databases/00519/heart_failure_clinical_records_dataset.csv"
 df <- read.csv(URL)
+colnames(df) <- c("Age", "Anaemia", "CPK", "Diabetes", "Ejection Fraction", "Blood Pressure", 
+                  "Platelets", "Creatinine", "Sodium", "Sex", "Smoking", "Time", "Survival")
+
 ```
+
+## EDA  
+
+### Quantitative Variables: Boxplots
+```{r}
+df %>%
+  mutate(DEATH_EVENT = ifelse(DEATH_EVENT == 1, "Deceased", "Survived")) %>%
+  ggplot(aes(x = DEATH_EVENT, y = time)) +
+  geom_boxplot() +
+  xlab("") +
+  ylab("Follow-up Period (Days)")
+
+df %>%
+  mutate(DEATH_EVENT = ifelse(DEATH_EVENT == 1, "Deceased", "Survived")) %>%
+  ggplot(aes(x = DEATH_EVENT, y = age)) +
+  geom_boxplot() +
+  xlab("") +
+  ylab("Age (Years)")
+
+df %>%
+  mutate(DEATH_EVENT = ifelse(DEATH_EVENT == 1, "Deceased", "Survived"),
+         platelets = round(platelets/1000,2)) %>%
+  gather(age, time,
+         key = "var", value = "value") %>%
+  ggplot(aes(x = DEATH_EVENT, y = value)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_blank()) +
+  facet_wrap(var ~ DEATH_EVENT, scales = "free", ncol = 4,
+             labeller = labeller(var = c(age = "Age",
+                                         time = "Follow-up Period"))) +
+  xlab("") +
+  ylab("")
+```
+
+### Quantitative Variables: Histograms  
+```{r}
+df %>%
+  mutate(DEATH_EVENT = ifelse(DEATH_EVENT == 1, "Deceased", "Survived"),
+         platelets = round(platelets/1000,2)) %>%
+  gather(ejection_fraction, creatinine_phosphokinase, platelets,
+         key = "var", value = "value") %>%
+  ggplot(aes(x = value)) +
+  geom_histogram() +
+  facet_wrap(var ~ DEATH_EVENT, scales = "free", ncol = 4,
+             labeller = labeller(var = c(ejection_fraction = "Ejection Fraction",
+                                         creatinine_phosphokinase = "CPK",
+                                         platelets = "Platelets"))) 
+
+df %>%
+  mutate(DEATH_EVENT = ifelse(DEATH_EVENT == 1, "Deceased", "Survived"),
+         platelets = round(platelets/1000,2)) %>%
+  gather(serum_creatinine, serum_sodium, age, time,
+         key = "var", value = "value") %>%
+  ggplot(aes(x = value)) +
+  geom_histogram() +
+  facet_wrap(var ~ DEATH_EVENT, scales = "free", ncol = 4,
+             labeller = labeller(var = c(serum_creatinine = "Creatinine",
+                                         serum_sodium = "Sodium",
+                                         age = "Age",
+                                         time = "Follow-up Period"))) 
+
+
+df %>%
+  ggplot(aes(x = CPK)) +
+  geom_histogram() +
+  facet_wrap(~Survival)
+```
+
+### Qualitative Variables: Contingency Table  
+```{r}
+addmargins(table(df$anaemia, df$DEATH_EVENT))
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

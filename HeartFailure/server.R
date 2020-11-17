@@ -8,19 +8,74 @@
 #
 
 library(shiny)
+library(tidyverse)
+library(ggplot2)
 
-# Define server logic required to draw a histogram
+# Read In Data
+URL <- "https://archive.ics.uci.edu/ml/machine-learning-databases/00519/heart_failure_clinical_records_dataset.csv"
+df <- read.csv(URL) %>%
+    mutate(platelets = round(platelets/1000,2))
+# colnames(df) <- c("Age", "Anaemia", "CPK", "Diabetes", "Ejection Fraction",
+#                  "Blood Pressure", "Platelets", "Creatinine", "Sodium", "Sex",
+#                  "Smoking", "Time", "Survival")
+
+
 shinyServer(function(input, output) {
 
-    output$distPlot <- renderPlot({
+    
+    #create plot
+    output$histPlot <- renderPlot({
 
-        # generate bins based on input$bins from ui.R
-        x    <- faithful[, 2]
-        bins <- seq(min(x), max(x), length.out = input$bins + 1)
+        df <- df %>%
+            mutate(DEATH_EVENT = ifelse(DEATH_EVENT == 1, "Deceased", "Survived"))
+                   
+        var <- switch(input$quantVar,
+                      "Age" = df$age, 
+                      "CPK" = df$creatinine_phosphokinase, 
+                      "Ejection Fraction" = df$ejection_fraction, 
+                      "Platelets" = df$platelets, 
+                      "Serum Creatinine" = df$serum_creatinine, 
+                      "Serum Sodium" = df$serum_sodium, 
+                      "Follow-up Period" = df$time)
 
-        # draw the histogram with the specified number of bins
-        hist(x, breaks = bins, col = 'darkgray', border = 'white')
-
+        label <- switch(input$quantVar,
+                        "Age" = "Age of patient (years)", 
+                        "CPK" = "Level of CPK enzyme in blood(mcg/L)", 
+                        "Ejection Fraction" = "% of blood leaving the heart at each contraction (%)", 
+                        "Platelets" = "Platelets in the blood (kiloplatelets/mL)", 
+                        "Serum Creatinine" = "Level of serum creatinine in blood (mg/dL)", 
+                        "Serum Sodium" = "Level of serum sodium in blood(mEq/L)", 
+                        "Follow-up Period" = "Follow-up Period (days)")
+  
+        g <- ggplot(df, aes(x = var)) +
+            geom_histogram(bins = input$bins) + 
+            xlab(label) +
+            theme(axis.title = element_text(size = 15))
+        
+        if(input$survival){
+            g  + facet_wrap(~DEATH_EVENT, scales = "free")
+        } else {
+            g 
+        }
     })
+    
+    
+    #create table
+    #summary statistics on variable selected by user rounded to the digit also selected by user
+    output$table <- DT::renderDataTable({
+        
+        if(input$varType == "Quantitative"){
+            
+            
+        } else{
+            if(input$addmargins){
+                
+            } else{
+                
+            }
+        }
+        
+
+    })  
 
 })
