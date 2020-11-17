@@ -8,46 +8,79 @@
 #
 
 library(shiny)
+library(shinydashboard)
 
-# Define UI for application that draws a histogram
-shinyUI(fluidPage(
 
-    # Application title
-    titlePanel("Old Faithful Geyser Data"),
-
-    # Sidebar with a slider input for number of bins
-    sidebarLayout(
-        sidebarPanel(
-            
-            # Plot: Histogram
-            h3("Histogram Attributes"),
-            selectizeInput("quantVar", "Select Variable", 
-                           choices = list("Age", "CPK", "Ejection Fraction", "Platelets", "Serum Creatinine", "Serum Sodium", "Follow-up Period"), 
-                           selected = "Age"),
-            checkboxInput("survival", h4("Compare Deceased vs. Survived")),
-            
-            sliderInput("bins", "Size of bins",
-                        min = 10, max = 40, value = 25),
-            br(),
-            
-            # Table: Quantitative Summary
-            h3("Table Attributes"),
-            selectInput("varType", "Select Variable Type",
-                        choices = list("Qualitative", "Quantitative"),
-                        selected = "Quantitative"),
-            
-            conditionalPanel(condition = "input.varType == 'Qualitative'",
-                             selectizeInput("qualVar", "Select Variable", 
-                                            choices = list("Anaemia", "Diabetes", "High Blood Pressure", "Sex", "Smoking"), 
-                                            selected = "Anaemia"),
-                             checkboxInput("addmargins", "Show marginal total?"))
+dashboardPage(
+    #add title
+    dashboardHeader(title="Heart failure clinical records",titleWidth=1000),
+              
+    #define sidebar items
+    dashboardSidebar(sidebarMenu(
+        menuItem("Info Page", tabName = "info", icon = icon("archive")),
+        menuItem("Data", tabName = "data"),
+        menuItem("Exploratory Data Analysis", tabName = "eda")
+        )
+    ),
+    
+    #define the body of the app
+    dashboardBody(
+        tabItems(
+            # First tab content
             
             
-        ),
-        # Show a plot of the generated distribution
-        mainPanel(
-            plotOutput("histPlot"),
-            verbatimTextOutput("desctable")
+            #Exploratory Data Analysis Page Layout      
+            tabItem(tabName = "eda",
+                    
+                    fluidPage(
+                        # Application title
+                        titlePanel("FIX THIS: Old Faithful Geyser Data"),
+                                  
+                        # Sidebar with a slider input for number of bins
+                        sidebarLayout(
+                            sidebarPanel(
+                                # Plot: Histogram
+                                h3("Histogram Attributes"),
+                                selectizeInput("quantVar", "Select Variable",
+                                               choices = list("Age", "CPK", "Ejection Fraction", "Platelets", "Serum Creatinine", "Serum Sodium", "Follow-up Period"),
+                                               selected = "Age"),
+                                checkboxInput("survival", h4("Compare Deceased vs. Survived")),
+                                          
+                                sliderInput("bins", "Size of bins",
+                                            min = 10, max = 40, value = 25),
+                                br(),
+                                br(),
+                                br(),
+                                br(),
+                                br(),
+                                          
+                                # Table: Quantitative Summary
+                                h3("Table Attributes"),
+                                selectInput("varType", "Select Variable Type",
+                                            choices = list("Qualitative", "Quantitative"),
+                                            selected = "Quantitative"),
+                                          
+                                conditionalPanel(condition = "input.varType == 'Qualitative'",
+                                                 selectizeInput("qualVar", "Select Variable",
+                                                                choices = list("Anaemia", "Diabetes", "High Blood Pressure", "Sex", "Smoking"), 
+                                                                selected = "Anaemia"),
+                                                 checkboxInput("addmargins", "Show marginal total?"))
+                                ),
+                                
+                            # Show a plot of the generated distribution
+                            mainPanel(
+                                plotOutput("histPlot"),
+                                
+                                br(),
+                                br(),
+                                    
+                                verbatimTextOutput("desctable")
+                            )
+                        )
+                    )
+            )
         )
     )
-))
+)
+
+
