@@ -12,6 +12,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Run Repo from R Stuido  
 ```{r}
 library(shiny)
-runGitHub( "ST558-Project3", "hyeonhpark", subdir = "/HeartFailure/")
+runGitHub(repo = "ST558-Project3", username = "hyeonhpark", ref = "main", subdir = "/HeartFailure/", launch.browser = TRUE)
 ```
 

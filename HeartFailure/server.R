@@ -10,6 +10,7 @@
 library(shiny)
 library(dplyr)
 library(ggplot2)
+library(knitr)
 
 # Read In Data
 URL <- "https://archive.ics.uci.edu/ml/machine-learning-databases/00519/heart_failure_clinical_records_dataset.csv"
@@ -86,7 +87,7 @@ shinyServer(function(input, output) {
 # Data
 
     #create output of observations
-    output$obs <- renderTable({
+    output$obs <- DT::renderDataTable({
       df
     })
 
