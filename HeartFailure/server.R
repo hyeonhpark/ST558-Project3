@@ -22,54 +22,54 @@ df <- read.csv(URL) %>%
 
 shinyServer(function(input, output) {
 
-    
+
     #create plot
     output$histPlot <- renderPlot({
 
         df <- df %>%
             mutate(DEATH_EVENT = ifelse(DEATH_EVENT == 1, "Deceased", "Survived"))
-                   
+
         var <- switch(input$quantVar,
-                      "Age" = df$age, 
-                      "CPK" = df$creatinine_phosphokinase, 
-                      "Ejection Fraction" = df$ejection_fraction, 
-                      "Platelets" = df$platelets, 
-                      "Serum Creatinine" = df$serum_creatinine, 
-                      "Serum Sodium" = df$serum_sodium, 
+                      "Age" = df$age,
+                      "CPK" = df$creatinine_phosphokinase,
+                      "Ejection Fraction" = df$ejection_fraction,
+                      "Platelets" = df$platelets,
+                      "Serum Creatinine" = df$serum_creatinine,
+                      "Serum Sodium" = df$serum_sodium,
                       "Follow-up Period" = df$time)
 
         label <- switch(input$quantVar,
-                        "Age" = "Age of patient (years)", 
-                        "CPK" = "Level of CPK enzyme in blood(mcg/L)", 
-                        "Ejection Fraction" = "% of blood leaving the heart at each contraction (%)", 
-                        "Platelets" = "Platelets in the blood (kiloplatelets/mL)", 
-                        "Serum Creatinine" = "Level of serum creatinine in blood (mg/dL)", 
-                        "Serum Sodium" = "Level of serum sodium in blood(mEq/L)", 
+                        "Age" = "Age of patient (years)",
+                        "CPK" = "Level of CPK enzyme in blood(mcg/L)",
+                        "Ejection Fraction" = "% of blood leaving the heart at each contraction (%)",
+                        "Platelets" = "Platelets in the blood (kiloplatelets/mL)",
+                        "Serum Creatinine" = "Level of serum creatinine in blood (mg/dL)",
+                        "Serum Sodium" = "Level of serum sodium in blood(mEq/L)",
                         "Follow-up Period" = "Follow-up Period (days)")
-  
+
         g <- ggplot(df, aes(x = var)) +
-            geom_histogram(bins = input$bins) + 
+            geom_histogram(bins = input$bins) +
             xlab(label) +
             theme(axis.title = element_text(size = 15))
-        
+
         if(input$survival){
             g  + facet_wrap(~DEATH_EVENT, scales = "free")
         } else {
-            g 
+            g
         }
     })
-    
-    
+
+
     #create table
     #summary statistics on variable selected by user rounded to the digit also selected by user
     output$desctable <- renderPrint({
       qual.var <- switch(input$qualVar,
-                    "Anaemia" = df$anaemia, 
-                    "Diabetes" = df$diabetes, 
-                    "High Blood Pressure" = df$high_blood_pressure, 
-                    "Sex" = df$sex, 
+                    "Anaemia" = df$anaemia,
+                    "Diabetes" = df$diabetes,
+                    "High Blood Pressure" = df$high_blood_pressure,
+                    "Sex" = df$sex,
                     "Smoking" = df$smoking)
-      
+
       if(input$varType == "Quantitative"){
         df.quant <- df %>%
           select(age, creatinine_phosphokinase, ejection_fraction, platelets, serum_creatinine, serum_sodium, time)
@@ -78,8 +78,9 @@ shinyServer(function(input, output) {
           if(input$addmargins){
             addmargins(table(qual.var, df$DEATH_EVENT))
             } else{
-              table(qual.var, df$DEATH_EVENT)            }
+              table(qual.var, df$DEATH_EVENT)
+              }
           }
-      })  
+      })
 
 })

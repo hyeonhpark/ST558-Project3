@@ -1,0 +1,17 @@
+---
+title: "README"
+author: "Hannah Park"
+date: "11/17/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Run Repo from R Stuido  
+```{r}
+library(shiny)
+runGitHub( "ST558-Project3", "hyeonhpark", subdir = "/HeartFailure/")
+```
+
