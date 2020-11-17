@@ -22,7 +22,7 @@ df <- read.csv(URL) %>%
 
 shinyServer(function(input, output) {
 
-
+#EDA
     #create plot
     output$histPlot <- renderPlot({
 
@@ -82,5 +82,12 @@ shinyServer(function(input, output) {
               }
           }
       })
+
+# Data
+
+    #create output of observations
+    output$obs <- renderTable({
+      df
+    })
 
 })
