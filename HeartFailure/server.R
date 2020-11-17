@@ -8,7 +8,7 @@
 #
 
 library(shiny)
-library(tidyverse)
+library(dplyr)
 library(ggplot2)
 
 # Read In Data
@@ -62,20 +62,24 @@ shinyServer(function(input, output) {
     
     #create table
     #summary statistics on variable selected by user rounded to the digit also selected by user
-    output$table <- DT::renderDataTable({
-        
-        if(input$varType == "Quantitative"){
-            
-            
+    output$desctable <- renderPrint({
+      qual.var <- switch(input$qualVar,
+                    "Anaemia" = df$anaemia, 
+                    "Diabetes" = df$diabetes, 
+                    "High Blood Pressure" = df$high_blood_pressure, 
+                    "Sex" = df$sex, 
+                    "Smoking" = df$smoking)
+      
+      if(input$varType == "Quantitative"){
+        df.quant <- df %>%
+          select(age, creatinine_phosphokinase, ejection_fraction, platelets, serum_creatinine, serum_sodium, time)
+        summary(df.quant)
         } else{
-            if(input$addmargins){
-                
+          if(input$addmargins){
+            addmargins(table(qual.var, df$DEATH_EVENT))
             } else{
-                
-            }
-        }
-        
-
-    })  
+              table(qual.var, df$DEATH_EVENT)            }
+          }
+      })  
 
 })

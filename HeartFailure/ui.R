@@ -46,7 +46,8 @@ shinyUI(fluidPage(
         ),
         # Show a plot of the generated distribution
         mainPanel(
-            plotOutput("histPlot")
+            plotOutput("histPlot"),
+            verbatimTextOutput("desctable")
         )
     )
 ))

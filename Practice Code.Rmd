@@ -88,6 +88,19 @@ df %>%
   geom_histogram() +
   facet_wrap(~Survival)
 ```
+### Quantitative Variables: Summary Table  
+```{r}
+df.quant <- df %>%
+              select(age, creatinine_phosphokinase, ejection_fraction, platelets, serum_creatinine, serum_sodium, time)
+summary(df.quant)
+
+summary_table(df[, c("age", "creatinine_phosphokinase", "ejection_fraction", "platelets", "serum_creatinine", "serum_sodium", "time")])
+
+
+knitr::kable(table(df$anaemia,df$DEATH_EVENT))
+```
+
+
 
 ### Qualitative Variables: Contingency Table  
 ```{r}
