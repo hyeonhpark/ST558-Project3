@@ -1,0 +1,19 @@
+---
+title: "Project 3 Code"
+author: "Hannah Park"
+date: "11/16/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Data Reading/Manipulation  
+```{r}
+# setwd("C:/Users/hyeon/Desktop/558/Project 3/")
+
+URL <- "https://archive.ics.uci.edu/ml/machine-learning-databases/00519/heart_failure_clinical_records_dataset.csv"
+df <- read.csv(URL)
+```
+
