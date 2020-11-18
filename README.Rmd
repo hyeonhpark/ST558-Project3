@@ -13,11 +13,13 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(shiny)
 library(dplyr)
-library(ggplot2)
+library(DT)
 library(knitr)
+library(ggplot2)
 library(ggfortify)
 library(bestglm)
-library(DT)
+library(caret)
+library(randomForest)
 ```
 
 

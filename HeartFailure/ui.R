@@ -136,26 +136,21 @@ dashboardPage(
                                 # Logistic Regression Options
                                 h3("Options: Logistic Regression"),
                                 selectInput("logitModel", "Select Model",
-                                            choices = list("Full Model", "Best-Subset Model", "Select my own variables"),
-                                            selected = "Full Model"),
-
-                                conditionalPanel(condition = "input.logitModel == 'Select my own variables'",
-                                                 checkboxGroupInput("userSelectVar", "Select variable(s) to include in the logistic model:",
-                                                                    choices = list("Age", "Anaemia", "CPK", "Diabetes", "Ejection Fraction", "Blood Pressure",
-                                                                                   "Platelets", "Creatinine", "Sodium", "Sex", "Smoking", "Time")
-                                                                    )
-                                )
-
+                                            choices = list("Full Model", "Best-Subset Model"),
+                                            selected = "Full Model")
                             ),
 
                             # Show a plot of the generated distribution
                             mainPanel(
-                                verbatimTextOutput("logitSummary")
+                                verbatimTextOutput("logitSummary"),
+                                verbatimTextOutput("rfSummary"),
+                                plotOutput("rfAccPlot")
+
                             )
                         )
+
                     )
             ),
-
 
             #Data
             tabItem(tabName = "data",
@@ -164,5 +159,6 @@ dashboardPage(
         )
     )
 )
+
 
 

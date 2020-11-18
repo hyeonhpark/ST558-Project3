@@ -12,7 +12,8 @@ library(dplyr)
 library(ggplot2)
 library(knitr)
 library(ggfortify)
-
+library(caret)
+library(randomForest)
 # Read In Data
 URL <- "https://archive.ics.uci.edu/ml/machine-learning-databases/00519/heart_failure_clinical_records_dataset.csv"
 df <- read.csv(URL) %>%
@@ -144,24 +145,43 @@ shinyServer(function(input, output) {
     train <- sample(1:nrow(df), size = nrow(df)*.7)
     test <- dplyr::setdiff(1:nrow(df), train)
 
-    df.train.logit <- df[train, ]
-    df.test.logit <- df[test, ]
+    df.train <- df[train, ]
+    df.test <- df[test, ]
 
     # Logitstic Model Fits
-    glm.full <- glm(DEATH_EVENT ~., data = df.train.logit, family = binomial)
-    glm.best <- bestglm::bestglm(df.train.logit, IC = "AIC")
-    glm.userSelected <- glm(DEATH_EVENT ~., data = df.train.logit, family = binomial)
-
+    glm.full <- glm(DEATH_EVENT ~., data = df.train, family = binomial)
+    glm.best <- bestglm::bestglm(df.train, IC = "AIC")
 
 
     output$logitSummary <- renderPrint({
 
       logitModel <- switch(input$logitModel,
                            "Full Model" = glm.full,
-                           "Best-Subset Model" = glm.best$BestModel,
-                           "Select my own variables" = glm.userSelected)
+                           "Best-Subset Model" = glm.best$BestModel)
 
       summary(logitModel)
+    })
+
+    # Random Forest Model Fits
+
+    control <- trainControl(method = "repeatedcv",
+                            number = 10,
+                            repeats = 3,
+                            search = "grid")
+    tunegrid <- expand.grid(.mtry=c(1:15))
+    set.seed(1)
+    fit.rf <- train(as.factor(DEATH_EVENT) ~ ., data = df.train,
+                    method = "rf",
+                    metric = "Accuracy",
+                    tuneGrid  = tunegrid,
+                    trControl = trctrl)
+
+    output$rfSummary <- renderPrint({
+      fit.rf
+    })
+
+    output$rfAccPlot <- renderPlot({
+      plot(fit.rf)
     })
 
 
