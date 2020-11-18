@@ -60,7 +60,8 @@ dashboardPage(
                                 # Plot: Histogram
                                 h3("Histogram Attributes"),
                                 selectizeInput("quantVar", "Select Variable",
-                                               choices = list("Age", "CPK", "Ejection Fraction", "Platelets", "Serum Creatinine", "Serum Sodium", "Follow-up Period"),
+                                               choices = list("Age", "CPK", "Ejection Fraction", "Platelets",
+                                                              "Serum Creatinine", "Serum Sodium", "Follow-up Period"),
                                                selected = "Age"),
                                 checkboxInput("survival", h4("Compare Deceased vs. Survived")),
 
@@ -106,13 +107,19 @@ dashboardPage(
                         # Application title
                         titlePanel(""),
 
-                        # Sidebar with a slider input for number of bins
-                        sidebarLayout(
-                            sidebarPanel(),
+                        verbatimTextOutput("PCAsummary"),
+                        plotOutput("PVEplot"),
 
-                            # Show a plot of the generated distribution
-                            mainPanel()
-                        )
+                        br(),
+
+                        h4("Brush and double-click to zoom"),
+                        plotOutput("PCAbiPlot",
+                                   dblclick = "PCAbiPlot_dblclick",
+                                   brush = brushOpts(
+                                       id = "PCAbiPlot_brush",
+                                       resetOnNew = TRUE
+                                   ))
+
                     )
             ),
 

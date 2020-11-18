@@ -11,6 +11,7 @@ library(shiny)
 library(dplyr)
 library(ggplot2)
 library(knitr)
+library(ggfortify)
 
 # Read In Data
 URL <- "https://archive.ics.uci.edu/ml/machine-learning-databases/00519/heart_failure_clinical_records_dataset.csv"
@@ -83,6 +84,59 @@ shinyServer(function(input, output) {
               }
           }
       })
+
+
+# Unsupervised Learning
+    #df of only quantitative predictor variables
+    df.quant <- df %>%
+    select(age, creatinine_phosphokinase, ejection_fraction, platelets,
+           serum_creatinine, serum_sodium, time)
+
+    # PCA
+    pr.out <- prcomp(df.quant, scale = TRUE)
+
+    # PCA Output
+    output$PCAsummary <- renderPrint({
+    summary(pr.out)
+    })
+
+    # PVE Plot
+    output$PVEplot <- renderPlot({
+      pr.var <- pr.out$sdev^2
+      pve <- 100*pr.var/sum(pr.var)
+
+      par(mfrow = c(1,2))
+      plot(pve, xlab = "Principal Component", ylab = "Proportion of Variance Explained", type ="o", col = "blue")
+
+      plot(cumsum(pve), type="o", ylab="Cumulative Proportion of Variance Explained", xlab="Principal Component", col="brown3")
+    })
+
+    # BiPlot
+    ranges <- reactiveValues(x = NULL, y = NULL)
+    df.biplot <- df
+    df.biplot$DEATH_EVENT <- as.factor(df$DEATH_EVENT)
+
+    output$PCAbiPlot <- renderPlot({
+      autoplot(pr.out, data = df.biplot, colour = 'DEATH_EVENT',
+               loadings = TRUE, loadings.colour = "blue",
+               loadings.label = TRUE, loadings.label.colour = "blue",
+               loadings.label.size = 4) +
+        coord_cartesian(xlim = ranges$x, ylim = ranges$y,
+                        expand = FALSE)
+    })
+
+    observeEvent(input$PCAbiPlot_dblclick, {
+      brush <- input$PCAbiPlot_brush
+      if(!is.null(brush)){
+        ranges$x <- c(brush$xmin, brush$xmax)
+        ranges$y <- c(brush$ymin, brush$ymax)
+
+      } else {
+        ranges$x <- NULL
+        ranges$y <- NULL
+      }
+    })
+
 
 # Data
 
