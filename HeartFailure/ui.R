@@ -125,31 +125,36 @@ dashboardPage(
 
             #Supervised Learning
             tabItem(tabName = "superv",
+                    tabItem(tabName = "superv",
 
-                    fluidPage(
-                        # Application title
-                        titlePanel("Logistic Regression & Random Forest"),
+                            fluidPage(
+                                # Application title
+                                titlePanel("Logistic Regression & Random Forest"),
 
-                        # Sidebar with a slider input for number of bins
-                        sidebarLayout(
-                            sidebarPanel(
-                                # Logistic Regression Options
-                                h3("Options: Logistic Regression"),
-                                selectInput("logitModel", "Select Model",
-                                            choices = list("Full Model", "Best-Subset Model"),
-                                            selected = "Full Model")
-                            ),
+                                # Sidebar with a slider input for number of bins
+                                sidebarLayout(
+                                    sidebarPanel(
+                                        # Logistic Regression Options
+                                        h3("Options: Logistic Regression"),
+                                        selectInput("logitModel", "Select Model",
+                                                    choices = list("Full Model", "Best-Subset Model"),
+                                                    selected = "Full Model")
+                                    ),
 
-                            # Show a plot of the generated distribution
-                            mainPanel(
-                                verbatimTextOutput("logitSummary"),
-                                verbatimTextOutput("rfSummary"),
-                                plotOutput("rfAccPlot")
+                                    # Show a plot of the generated distribution
+                                    mainPanel(
+
+                                        verbatimTextOutput("logitSummary"),
+                                        br(),
+                                        verbatimTextOutput("rfSummary")
+
+                                    )
+                                )
 
                             )
-                        )
-
                     )
+
+
             ),
 
             #Data
