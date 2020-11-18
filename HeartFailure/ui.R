@@ -127,29 +127,43 @@ dashboardPage(
             tabItem(tabName = "superv",
                     tabItem(tabName = "superv",
 
-                            fluidPage(
-                                # Application title
-                                titlePanel("Logistic Regression & Random Forest"),
+                            fluidPage(tabsetPanel(
+                                tabPanel("Logistic Regression",
+                                         sidebarLayout(
+                                             sidebarPanel(
+                                                 # Logistic Regression Options
+                                                 h3("Model: Logistic Regression"),
+                                                 selectInput("logitModel", "Select Model",
+                                                             choices = list("Full Model", "Best-Subset Model"),
+                                                             selected = "Full Model")
+                                                 ),
 
-                                # Sidebar with a slider input for number of bins
-                                sidebarLayout(
-                                    sidebarPanel(
-                                        # Logistic Regression Options
-                                        h3("Options: Logistic Regression"),
-                                        selectInput("logitModel", "Select Model",
-                                                    choices = list("Full Model", "Best-Subset Model"),
-                                                    selected = "Full Model")
-                                    ),
+                                             # Show a plot of the generated distribution
+                                             mainPanel(
 
-                                    # Show a plot of the generated distribution
-                                    mainPanel(
+                                                 verbatimTextOutput("logitSummary")
+                                             )
+                                         )),
+                                tabPanel("Random Forest",
+                                         sidebarLayout(
+                                             sidebarPanel(
 
-                                        verbatimTextOutput("logitSummary"),
-                                        br(),
-                                        verbatimTextOutput("rfSummary")
+                                                 h3("Model: Random Forest"),
+                                                 numericInput("ntree", "Number of Trees",
+                                                              value = 500, min = 200, max = 1000, step = 100)
+                                             ),
 
-                                    )
-                                )
+                                             # Show a plot of the generated distribution
+                                             mainPanel(
+
+                                                 verbatimTextOutput("rfSummary"),
+                                                 plotOutput("rfVarImpPlot")
+
+                                             )
+                                         )),
+                                tabPanel("Predictions")
+                            )
+
 
                             )
                     )

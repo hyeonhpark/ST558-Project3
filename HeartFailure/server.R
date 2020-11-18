@@ -163,9 +163,12 @@ shinyServer(function(input, output) {
     })
 
     output$rfSummary <- renderPrint({
-      fit.rf <- randomForest(as.factor(DEATH_EVENT) ~ ., data = df.train, importance = TRUE)
+      fit.rf <- randomForest(as.factor(DEATH_EVENT) ~ ., data = df.train, ntree = input$ntree, importance = TRUE)
       print(fit.rf)
+    })
 
+    output$rfVarImpPlot <- renderPlot({
+      varImpPlot(fit.rf,type=1)
     })
 
 
