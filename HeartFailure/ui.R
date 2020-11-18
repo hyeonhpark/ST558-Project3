@@ -119,7 +119,6 @@ dashboardPage(
                                        id = "PCAbiPlot_brush",
                                        resetOnNew = TRUE
                                    ))
-
                     )
             ),
 
@@ -129,14 +128,30 @@ dashboardPage(
 
                     fluidPage(
                         # Application title
-                        titlePanel(""),
+                        titlePanel("Logistic Regression & Random Forest"),
 
                         # Sidebar with a slider input for number of bins
                         sidebarLayout(
-                            sidebarPanel(),
+                            sidebarPanel(
+                                # Logistic Regression Options
+                                h3("Options: Logistic Regression"),
+                                selectInput("logitModel", "Select Model",
+                                            choices = list("Full Model", "Best-Subset Model", "Select my own variables"),
+                                            selected = "Full Model"),
+
+                                conditionalPanel(condition = "input.logitModel == 'Select my own variables'",
+                                                 checkboxGroupInput("userSelectVar", "Select variable(s) to include in the logistic model:",
+                                                                    choices = list("Age", "Anaemia", "CPK", "Diabetes", "Ejection Fraction", "Blood Pressure",
+                                                                                   "Platelets", "Creatinine", "Sodium", "Sex", "Smoking", "Time")
+                                                                    )
+                                )
+
+                            ),
 
                             # Show a plot of the generated distribution
-                            mainPanel()
+                            mainPanel(
+                                verbatimTextOutput("logitSummary")
+                            )
                         )
                     )
             ),

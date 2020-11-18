@@ -103,12 +103,12 @@ shinyServer(function(input, output) {
     # PVE Plot
     output$PVEplot <- renderPlot({
       pr.var <- pr.out$sdev^2
-      pve <- 100*pr.var/sum(pr.var)
+      pve <- pr.var/sum(pr.var)
 
       par(mfrow = c(1,2))
-      plot(pve, xlab = "Principal Component", ylab = "Proportion of Variance Explained", type ="o", col = "blue")
+      plot(pve, xlab = "Principal Component", ylab = "Proportion of Variance Explained (PVE)", type ="o", col = "blue")
 
-      plot(cumsum(pve), type="o", ylab="Cumulative Proportion of Variance Explained", xlab="Principal Component", col="brown3")
+      plot(cumsum(pve), type="o", ylab="Cumulative PVE", xlab="Principal Component", col="brown3")
     })
 
     # BiPlot
@@ -136,6 +136,34 @@ shinyServer(function(input, output) {
         ranges$y <- NULL
       }
     })
+
+
+# Supervised Learning
+
+    set.seed(1)
+    train <- sample(1:nrow(df), size = nrow(df)*.7)
+    test <- dplyr::setdiff(1:nrow(df), train)
+
+    df.train.logit <- df[train, ]
+    df.test.logit <- df[test, ]
+
+    # Logitstic Model Fits
+    glm.full <- glm(DEATH_EVENT ~., data = df.train.logit, family = binomial)
+    glm.best <- bestglm::bestglm(df.train.logit, IC = "AIC")
+    glm.userSelected <- glm(DEATH_EVENT ~., data = df.train.logit, family = binomial)
+
+
+
+    output$logitSummary <- renderPrint({
+
+      logitModel <- switch(input$logitModel,
+                           "Full Model" = glm.full,
+                           "Best-Subset Model" = glm.best$BestModel,
+                           "Select my own variables" = glm.userSelected)
+
+      summary(logitModel)
+    })
+
 
 
 # Data

@@ -9,6 +9,18 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## List of packages needed to run the app  
+```{r}
+library(shiny)
+library(dplyr)
+library(ggplot2)
+library(knitr)
+library(ggfortify)
+library(bestglm)
+library(DT)
+```
+
+
 ## Run Repo from R Stuido  
 ```{r}
 library(shiny)
