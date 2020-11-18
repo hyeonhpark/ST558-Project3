@@ -125,7 +125,6 @@ dashboardPage(
 
             #Supervised Learning
             tabItem(tabName = "superv",
-                    tabItem(tabName = "superv",
 
                             fluidPage(tabsetPanel(
                                 tabPanel("Logistic Regression",
@@ -143,7 +142,9 @@ dashboardPage(
 
                                                  verbatimTextOutput("logitSummary")
                                              )
-                                         )),
+                                         )
+                                ),
+
                                 tabPanel("Random Forest",
                                          sidebarLayout(
                                              sidebarPanel(
@@ -160,16 +161,56 @@ dashboardPage(
                                                  plotOutput("rfVarImpPlot")
 
                                              )
-                                         )),
-                                tabPanel("Predictions")
-                            )
+                                         )
+                                ),
+
+                                tabPanel("Prediction",
+
+                                         fluidPage(
+                                             fluidRow(column(width = 12,
+                                                             h3("Model Selection"),
+                                                             selectInput("model", "Select Model for Prediction",
+                                                                         choices = list("Logistic Full Model", "Logistic Best-Subset Model", "Random Forest Model"),
+                                                                         selected = "Logistic Full Model"))),
+
+                                             fluidRow(column(width = 4,
+                                                             h3("Quantitative Variable Input Panel"),
+                                                             sliderInput("age", "Age of patient (years)",
+                                                                         value = 60, min = 40, max = 100, step = 1),
+                                                             sliderInput("CPK", "Level of CPK enzyme in blood(mcg/L)",
+                                                                         value = 580 , min = 20, max = 1000, step = 20),
+                                                             sliderInput("EF", "% of blood leaving the heart at each contraction (%)",
+                                                                         value = 40, min = 10, max = 80, step = 20),
+                                                             sliderInput("platelets", "Platelets in the blood (kiloplatelets/mL)",
+                                                                         value = 250, min = 25, max = 900, step = 25),
+                                                             sliderInput("serumC", "Level of serum creatinine in blood (mg/dL)",
+                                                                         value = 1.5, min = 0.5, max = 10, step = 0.5),
+                                                             sliderInput("serumS", "Level of serum sodium in blood(mEq/L)",
+                                                                         value = 135, min = 110, max = 150, step = 5),
+                                                             sliderInput("time", "Follow-up Period (days)",
+                                                                         value = 130, min = 1, max = 290, step = 10)),
+                                                      column(width = 4,
+                                                             h3("Qualitative Variable Input Panel"),
+                                                             radioButtons("anaemia", "Has anaemia?",
+                                                                          choices = list("Yes" = 1, "No" = 2), selected = 1),
+                                                             radioButtons("diabetes", "Has diabetes?",
+                                                                          choices = list("Yes" = 1, "No" = 2), selected = 1),
+                                                             radioButtons("HBP", "Has high blood pressure?",
+                                                                          choices = list("Yes" = 1, "No" = 2), selected = 1),
+                                                             radioButtons("sex", "Sex",
+                                                                          choices = list("Male" = 1, "Female" = 2), selected = 1),
+                                                             radioButtons("smoking", "Smoking History",
+                                                                          choices = list("Yes" = 1, "No" = 2), selected = 1))),
+                                             fluidRow(column(width = 12,
+                                                             h3("Selected Input and Prediction Result"),
+                                                             tableOutput("predictTbl")))
+                                         )
+
+                                )
 
 
-                            )
-                    )
-
-
-            ),
+                        ))
+                    ),
 
             #Data
             tabItem(tabName = "data",

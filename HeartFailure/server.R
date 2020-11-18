@@ -150,7 +150,6 @@ shinyServer(function(input, output) {
 
 
     output$logitSummary <- renderPrint({
-
       # Logitstic Model Fits
       glm.full <- glm(DEATH_EVENT ~., data = df.train, family = binomial)
       glm.best <- bestglm::bestglm(df.train, IC = "AIC")
@@ -163,13 +162,45 @@ shinyServer(function(input, output) {
     })
 
     output$rfSummary <- renderPrint({
+      # Random Forest Model Fits
       fit.rf <- randomForest(as.factor(DEATH_EVENT) ~ ., data = df.train, ntree = input$ntree, importance = TRUE)
+
       print(fit.rf)
     })
 
     output$rfVarImpPlot <- renderPlot({
       varImpPlot(fit.rf,type=1)
     })
+
+    output$predictTbl <- renderTable({
+      glm.full <- glm(DEATH_EVENT ~., data = df.train, family = binomial)
+      glm.best <- bestglm::bestglm(df.train, IC = "AIC")
+      fit.rf <- randomForest(as.factor(DEATH_EVENT) ~ ., data = df.train, ntree = input$ntree)
+
+      model <- switch(input$model,
+                      "Logistic Full Model" = glm.full,
+                      "Logistic Best-Subset Model" = glm.best,
+                      "Random Forest Model" = fit.rf)
+
+      df.predict <- as.data.frame(cbind(age = input$age,
+                                        anaemia = ifelse(input$anaemia == 1, 1, 0),
+                                        creatinine_phosphokinase = input$CPK,
+                                        diabetes = ifelse(input$diabetes == 1, 1, 0),
+                                        ejection_fraction = input$EF,
+                                        high_blood_pressure = ifelse(input$HBP == 1, 1, 0),
+                                        platelets = input$platelets,
+                                        serum_creatinine = input$serumC,
+                                        serum_sodium = input$serumS,
+                                        sex = ifelse(input$sex == 1, 1, 0),
+                                        smoking = ifelse(input$smoking == 1, 1, 0),
+                                        time = input$time))
+
+      df.predict$predicted <- predict(model, df.predict)
+
+      print(df.predict)
+
+    })
+
 
 
 # Data
