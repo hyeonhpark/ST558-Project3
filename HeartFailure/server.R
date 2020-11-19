@@ -23,44 +23,61 @@ df <- read.csv(URL) %>%
 #                  "Smoking", "Time", "Survival")
 
 
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
 
 #EDA
     #create plot
+  observeEvent(input$survival, {updateSliderInput(session, "bins", min = if(input$survival == FALSE){10}else{15},
+                                                  max = if(input$survival == FALSE){35}else{40})})
+
+  plotInput <- reactive({
+    df <- df %>%
+      mutate(DEATH_EVENT = ifelse(DEATH_EVENT == 1, "Deceased", "Survived"))
+
+    var <- switch(input$quantVar,
+                  "Age" = df$age,
+                  "CPK" = df$creatinine_phosphokinase,
+                  "Ejection Fraction" = df$ejection_fraction,
+                  "Platelets" = df$platelets,
+                  "Serum Creatinine" = df$serum_creatinine,
+                  "Serum Sodium" = df$serum_sodium,
+                  "Follow-up Period" = df$time)
+
+    label <- switch(input$quantVar,
+                    "Age" = "Age of patient (years)",
+                    "CPK" = "Level of CPK enzyme in blood(mcg/L)",
+                    "Ejection Fraction" = "% of blood leaving the heart at each contraction (%)",
+                    "Platelets" = "Platelets in the blood (kiloplatelets/mL)",
+                    "Serum Creatinine" = "Level of serum creatinine in blood (mg/dL)",
+                    "Serum Sodium" = "Level of serum sodium in blood(mEq/L)",
+                    "Follow-up Period" = "Follow-up Period (days)")
+
+    g <- ggplot(df, aes(x = var)) +
+      geom_histogram(bins = input$bins) +
+      xlab(label) +
+      theme(axis.title = element_text(size = 15))
+
+    hist <- if(input$survival){
+      g  + facet_wrap(~DEATH_EVENT, scales = "free")
+    } else {
+      g
+    }
+  })
+
+
     output$histPlot <- renderPlot({
-
-        df <- df %>%
-            mutate(DEATH_EVENT = ifelse(DEATH_EVENT == 1, "Deceased", "Survived"))
-
-        var <- switch(input$quantVar,
-                      "Age" = df$age,
-                      "CPK" = df$creatinine_phosphokinase,
-                      "Ejection Fraction" = df$ejection_fraction,
-                      "Platelets" = df$platelets,
-                      "Serum Creatinine" = df$serum_creatinine,
-                      "Serum Sodium" = df$serum_sodium,
-                      "Follow-up Period" = df$time)
-
-        label <- switch(input$quantVar,
-                        "Age" = "Age of patient (years)",
-                        "CPK" = "Level of CPK enzyme in blood(mcg/L)",
-                        "Ejection Fraction" = "% of blood leaving the heart at each contraction (%)",
-                        "Platelets" = "Platelets in the blood (kiloplatelets/mL)",
-                        "Serum Creatinine" = "Level of serum creatinine in blood (mg/dL)",
-                        "Serum Sodium" = "Level of serum sodium in blood(mEq/L)",
-                        "Follow-up Period" = "Follow-up Period (days)")
-
-        g <- ggplot(df, aes(x = var)) +
-            geom_histogram(bins = input$bins) +
-            xlab(label) +
-            theme(axis.title = element_text(size = 15))
-
-        if(input$survival){
-            g  + facet_wrap(~DEATH_EVENT, scales = "free")
-        } else {
-            g
-        }
+      print(plotInput())
     })
+
+
+    output$down <- downloadHandler(
+      filename = 'histogram.png',
+      content = function(file) {
+        png(file)
+        print(plotInput())
+        dev.off()
+    })
+
 
 
     #create table
@@ -93,16 +110,26 @@ shinyServer(function(input, output) {
     select(age, creatinine_phosphokinase, ejection_fraction, platelets,
            serum_creatinine, serum_sodium, time)
 
-    # PCA
-    pr.out <- prcomp(df.quant, scale = TRUE)
 
     # PCA Output
     output$PCAsummary <- renderPrint({
-    summary(pr.out)
+      if(input$quantOnly){
+        pr.out <- prcomp(df.quant, scale = TRUE)
+      } else{
+        pr.out <- prcomp(df, scale = TRUE)
+      }
+      summary(pr.out)
     })
 
     # PVE Plot
     output$PVEplot <- renderPlot({
+
+      if(input$quantOnly){
+        pr.out <- prcomp(df.quant, scale = TRUE)
+      } else{
+        pr.out <- prcomp(df, scale = TRUE)
+      }
+
       pr.var <- pr.out$sdev^2
       pve <- pr.var/sum(pr.var)
 
@@ -118,6 +145,13 @@ shinyServer(function(input, output) {
     df.biplot$DEATH_EVENT <- as.factor(df$DEATH_EVENT)
 
     output$PCAbiPlot <- renderPlot({
+
+      if(input$quantOnly){
+        pr.out <- prcomp(df.quant, scale = TRUE)
+      } else{
+        pr.out <- prcomp(df, scale = TRUE)
+      }
+
       autoplot(pr.out, data = df.biplot, colour = 'DEATH_EVENT',
                loadings = TRUE, loadings.colour = "blue",
                loadings.label = TRUE, loadings.label.colour = "blue",
@@ -161,6 +195,66 @@ shinyServer(function(input, output) {
 
     })
 
+    output$logitTestConf <- renderTable({
+      glm.full <- glm(DEATH_EVENT ~., data = df.train, family = binomial)
+      glm.best <- bestglm::bestglm(df.train, IC = "AIC")
+
+      logitModel <- switch(input$logitModel,
+                           "Full Model" = glm.full,
+                           "Best-Subset Model" = glm.best$BestModel)
+
+      if(input$logitTest == "Test Data"){
+        # Test Error Rate
+        probs.best <- predict(logitModel, newdata = df.test,
+                              type = "response")
+        pred.best <- rep(0, nrow(df.test))
+        pred.best[probs.best > 0.5] <- 1
+
+        table(pred.best, df.test$DEATH_EVENT)
+      } else{
+        # Training Error Rate
+        probs.best <- predict(logitModel, newdata = df.train,
+                              type = "response")
+        pred.best <- rep(0, nrow(df.train))
+        pred.best[probs.best > 0.5] <- 1
+
+        table(pred.best, df.train$DEATH_EVENT)
+      }
+
+    })
+
+    output$logitTestError <- renderText({
+      glm.full <- glm(DEATH_EVENT ~., data = df.train, family = binomial)
+      glm.best <- bestglm::bestglm(df.train, IC = "AIC")
+
+      logitModel <- switch(input$logitModel,
+                           "Full Model" = glm.full,
+                           "Best-Subset Model" = glm.best$BestModel)
+
+      if(input$logitTest == "Test Data"){
+        # Test Error Rate
+        probs.best <- predict(logitModel, newdata = df.test,
+                              type = "response")
+        pred.best <- rep(0, nrow(df.test))
+        pred.best[probs.best > 0.5] <- 1
+
+        tbl.best <- table(pred.best, df.test$DEATH_EVENT)
+        1-sum(diag(tbl.best))/sum(tbl.best)
+      } else{
+        # Training Error Rate
+        probs.best <- predict(logitModel, newdata = df.train,
+                              type = "response")
+        pred.best <- rep(0, nrow(df.train))
+        pred.best[probs.best > 0.5] <- 1
+
+        tbl.best <- table(pred.best, df.train$DEATH_EVENT)
+        1-sum(diag(tbl.best))/sum(tbl.best)
+      }
+
+
+
+    })
+
     output$rfSummary <- renderPrint({
       # Random Forest Model Fits
       fit.rf <- randomForest(as.factor(DEATH_EVENT) ~ ., data = df.train, ntree = input$ntree, importance = TRUE)
@@ -172,6 +266,42 @@ shinyServer(function(input, output) {
       varImpPlot(fit.rf,type=1)
     })
 
+
+    output$rfTestConf <- renderTable({
+      fit.rf <- randomForest(as.factor(DEATH_EVENT) ~ ., data = df.train, ntree = input$ntree, importance = TRUE)
+
+      if(input$rfTest == "Test Data"){
+        # Test Error Rate
+        pred <- predict(fit.rf, df.test, type = "response")
+        table(pred, df.test$DEATH_EVENT)
+      } else{
+        # Training Error Rate
+        pred <- predict(fit.rf, df.train, type = "response")
+        table(pred, df.train$DEATH_EVENT)
+      }
+
+
+    })
+
+    output$rfTestError <- renderText({
+      fit.rf <- randomForest(as.factor(DEATH_EVENT) ~ ., data = df.train, ntree = input$ntree, importance = TRUE)
+
+      if(input$rfTest == "Test Data"){
+        # Test Error Rate
+        pred <- predict(fit.rf, df.test, type = "response")
+
+        tbl.best <- table(pred, df.test$DEATH_EVENT)
+        1-sum(diag(tbl.best))/sum(tbl.best)
+      } else{
+        # Training Error Rate
+        pred <- predict(fit.rf, df.train, type = "response")
+
+        tbl.best <- table(pred, df.train$DEATH_EVENT)
+        1-sum(diag(tbl.best))/sum(tbl.best)
+      }
+
+    })
+
     output$predictTbl <- renderTable({
       glm.full <- glm(DEATH_EVENT ~., data = df.train, family = binomial)
       glm.best <- bestglm::bestglm(df.train, IC = "AIC")
@@ -179,7 +309,7 @@ shinyServer(function(input, output) {
 
       model <- switch(input$model,
                       "Logistic Full Model" = glm.full,
-                      "Logistic Best-Subset Model" = glm.best,
+                      "Logistic Best-Subset Model" = glm.best$BestModel,
                       "Random Forest Model" = fit.rf)
 
       df.predict <- as.data.frame(cbind(age = input$age,
@@ -195,10 +325,19 @@ shinyServer(function(input, output) {
                                         smoking = ifelse(input$smoking == 1, 1, 0),
                                         time = input$time))
 
-      df.predict$predicted <- predict(model, df.predict)
+      pred <- predict(model, df.predict, type = "response")
+
+
+      df.predict$predicted <- pred
+
+      if(input$model == "Random Forest Model"){
+        df.predict$response <- ifelse(as.numeric(pred)==2, "Survived", "Deceased")
+      } else {
+        df.predict$response <- ifelse(pred > 0.5, "Survived", "Deceased")
+      }
+
 
       print(df.predict)
-
     })
 
 
@@ -206,8 +345,39 @@ shinyServer(function(input, output) {
 # Data
 
     #create output of observations
-    output$obs <- DT::renderDataTable({
-      df
+
+    datasetInput <- reactive({
+
+      df <- df%>%
+        mutate(anaemia = as.factor(ifelse(anaemia == 1, "Yes", "No")),
+               diabetes = as.factor(ifelse(diabetes == 1, "Yes", "No")),
+               high_blood_pressure = as.factor(ifelse(high_blood_pressure == 1, "Yes", "No")),
+               sex = as.factor(ifelse(sex == 1, "Male", "Female")),
+               smoking = as.factor(ifelse(smoking == 1, "Yes", "No")),
+               DEATH_EVENT = as.factor(ifelse(DEATH_EVENT == 1, "Deceased", "Survived")))
+
+      if (length(input$vars) == 0) return(df)
+      df %>% dplyr::select(!!!input$vars)
     })
+
+
+    output$obs <- DT::renderDT({
+      datasetInput()
+      }, filter = "top", rownames = TRUE)
+
+    output$filtered_row <-
+      renderPrint({
+        input[["dt_rows_all"]]
+      })
+
+    output$downloadData <- downloadHandler(
+      filename = function() {
+        "heart_failure_clinical_records.csv"
+      },
+      content = function(file) {
+        write.csv(datasetInput()[input[["obs_rows_all"]], ], file, row.names = FALSE)
+
+      }
+    )
 
 })

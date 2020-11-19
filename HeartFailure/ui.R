@@ -17,7 +17,7 @@ dashboardPage(
 
     #define sidebar items
     dashboardSidebar(sidebarMenu(
-        menuItem("Info Page", tabName = "info", icon = icon("archive")),
+        menuItem("Info Page", tabName = "info"),
         menuItem("Exploratory Data Analysis", tabName = "eda"),
         menuItem("Unsupervised", tabName = "unsuperv"),
         menuItem("Supervised", tabName = "superv"),
@@ -66,8 +66,9 @@ dashboardPage(
                                 checkboxInput("survival", h4("Compare Deceased vs. Survived")),
 
                                 sliderInput("bins", "Size of bins",
-                                            min = 10, max = 40, value = 25),
+                                            min = 10, max = 35, value = 20),
                                 br(),
+                                downloadButton(outputId = "down", label = "Download the histogram"),
                                 br(),
                                 br(),
                                 br(),
@@ -88,6 +89,7 @@ dashboardPage(
 
                             # Show a plot of the generated distribution
                             mainPanel(
+
                                 plotOutput("histPlot"),
 
                                 br(),
@@ -106,6 +108,8 @@ dashboardPage(
                     fluidPage(
                         # Application title
                         titlePanel(""),
+
+                        checkboxInput("quantOnly", "Select only quantitative variables?"),
 
                         verbatimTextOutput("PCAsummary"),
                         plotOutput("PVEplot"),
@@ -134,8 +138,17 @@ dashboardPage(
                                                  h3("Model: Logistic Regression"),
                                                  selectInput("logitModel", "Select Model",
                                                              choices = list("Full Model", "Best-Subset Model"),
-                                                             selected = "Full Model")
-                                                 ),
+                                                             selected = "Full Model"),
+                                                 br(),
+                                                 br(),
+                                                 selectInput("logitTest", "Training vs. Test Data",
+                                                             choices = list("Training Data", "Test Data"),
+                                                             selected = "Test Data"),
+                                                 h3("Confusion Matrix"),
+                                                 tableOutput("logitTestConf"),
+                                                 h3("Error Rate"),
+                                                 textOutput("logitTestError")
+                                             ),
 
                                              # Show a plot of the generated distribution
                                              mainPanel(
@@ -151,7 +164,16 @@ dashboardPage(
 
                                                  h3("Model: Random Forest"),
                                                  numericInput("ntree", "Number of Trees",
-                                                              value = 500, min = 200, max = 1000, step = 100)
+                                                              value = 500, min = 200, max = 1000, step = 100),
+                                                 br(),
+                                                 br(),
+                                                 selectInput("rfTest", "Training vs. Test Data",
+                                                             choices = list("Training Data", "Test Data"),
+                                                             selected = "Test Data"),
+                                                 h3("Confusion Matrix"),
+                                                 tableOutput("rfTestConf"),
+                                                 h3("Error Rate"),
+                                                 textOutput("rfTestError")
                                              ),
 
                                              # Show a plot of the generated distribution
@@ -214,11 +236,19 @@ dashboardPage(
 
             #Data
             tabItem(tabName = "data",
-                    DT::dataTableOutput("obs")
+                    fluidPage(
+                        fluidRow(column(width = 12,
+                                        downloadButton("downloadData", "Download Filtered Data"),
+                                        varSelectInput("vars", "Variable:", df, multiple = TRUE))),
+
+
+                        fluidRow(column(width = 12,
+                                        DT::dataTableOutput("obs")
+                        ))
+                    )
             )
-        )
     )
-)
+))
 
 
 
