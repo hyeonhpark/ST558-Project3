@@ -105,47 +105,54 @@ dashboardPage(
 
                     fluidPage(
 
-                        # Sidebar with a slider input for number of bins
+                        # Sidebar with histogram attribute and table attribute options
                         sidebarLayout(
                             sidebarPanel(
+
                                 # Plot: Histogram
-                                h3("Histogram Attributes"),
-                                selectizeInput("quantVar", "Select Variable",
+                                h2("Histogram Attributes"),
+                                selectizeInput("quantVar", h4("Select Variable"),
                                                choices = list("Age", "CPK", "Ejection Fraction", "Platelets",
                                                               "Serum Creatinine", "Serum Sodium", "Follow-up Period"),
                                                selected = "Age"),
-                                checkboxInput("survival", h4("Compare Deceased vs. Survived")),
+                                checkboxInput("survival", "Compare Deceased vs. Survived"),
 
                                 sliderInput("bins", "Size of bins",
                                             min = 10, max = 35, value = 20, step = 5),
+
                                 br(),
                                 downloadButton(outputId = "down", label = "Download the histogram"),
                                 br(),
                                 br(),
                                 br(),
                                 br(),
+                                br(),
+                                br(),
 
                                 # Table: Quantitative Summary
-                                h3("Table Attributes"),
-                                selectInput("varType", "Select Variable Type",
+                                h2("Table Attributes"),
+                                selectInput("varType", h4("Select Variable Type"),
                                             choices = list("Qualitative", "Quantitative"),
                                             selected = "Quantitative"),
 
+                                # Table: Qualitative Contingency Table
                                 conditionalPanel(condition = "input.varType == 'Qualitative'",
-                                                 selectizeInput("qualVar", "Select Variable",
+                                                 selectizeInput("qualVar", h4("Select Qualitative Variable"),
                                                                 choices = list("Anaemia", "Diabetes", "High Blood Pressure", "Sex", "Smoking"),
                                                                 selected = "Anaemia"),
                                                  checkboxInput("addmargins", "Show marginal total?"))
                                 ),
 
-                            # Show a plot of the generated distribution
+                            # Show Histogram and Tables
                             mainPanel(
 
+                                h1("Histogram"),
                                 plotOutput("histPlot"),
 
                                 br(),
                                 br(),
 
+                                textOutput("EDAtbl"),
                                 verbatimTextOutput("desctable")
                             )
                         )

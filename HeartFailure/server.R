@@ -1,12 +1,4 @@
-#
-# This is the server logic of a Shiny web application. You can run the
-# application by clicking 'Run App' above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
+# Required packages
 library(shiny)
 library(dplyr)
 library(ggplot2)
@@ -18,19 +10,17 @@ library(randomForest)
 URL <- "https://archive.ics.uci.edu/ml/machine-learning-databases/00519/heart_failure_clinical_records_dataset.csv"
 df <- read.csv(URL) %>%
     mutate(platelets = round(platelets/1000,2))
-# colnames(df) <- c("Age", "Anaemia", "CPK", "Diabetes", "Ejection Fraction",
-#                  "Blood Pressure", "Platelets", "Creatinine", "Sodium", "Sex",
-#                  "Smoking", "Time", "Survival")
 
 
 shinyServer(function(input, output, session) {
 
 #EDA
-    #create plot
-  observeEvent(input$survival, {updateSliderInput(session, "bins", min = if(input$survival == FALSE){10}else{15},
-                                                  max = if(input$survival == FALSE){35}else{40})})
 
-  plotInput <- reactive({
+  # Update histogram binsize slider based on user input for deceased vs. survived
+    observeEvent(input$survival, {updateSliderInput(session, "bins", min = if(input$survival == FALSE){10}else{15},
+                                                  max = if(input$survival == FALSE){35}else{40})})
+  # Create histogram
+    plotInput <- reactive({
     df <- df %>%
       mutate(DEATH_EVENT = ifelse(DEATH_EVENT == 1, "Deceased", "Survived"))
 
