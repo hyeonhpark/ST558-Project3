@@ -14,84 +14,100 @@ df <- read.csv(URL) %>%
 
 shinyServer(function(input, output, session) {
 
-#EDA
+    #EDA
 
-  # Update histogram binsize slider based on user input for deceased vs. survived
-    observeEvent(input$survival, {updateSliderInput(session, "bins", min = if(input$survival == FALSE){10}else{15},
-                                                  max = if(input$survival == FALSE){35}else{40})})
-  # Create histogram
+    # Histogram title
+    output$histTitle <- renderText({
+      paste("Histogram of Variable ", input$quantVar)
+    })
+
+    # Create histogram
     plotInput <- reactive({
-    df <- df %>%
-      mutate(DEATH_EVENT = ifelse(DEATH_EVENT == 1, "Deceased", "Survived"))
+        df <- df %>%
+            mutate(DEATH_EVENT = ifelse(DEATH_EVENT == 1, "Deceased", "Survived"))
 
-    var <- switch(input$quantVar,
-                  "Age" = df$age,
-                  "CPK" = df$creatinine_phosphokinase,
-                  "Ejection Fraction" = df$ejection_fraction,
-                  "Platelets" = df$platelets,
-                  "Serum Creatinine" = df$serum_creatinine,
-                  "Serum Sodium" = df$serum_sodium,
-                  "Follow-up Period" = df$time)
+        var <- switch(input$quantVar,
+                      "Age" = df$age,
+                      "CPK" = df$creatinine_phosphokinase,
+                      "Ejection Fraction" = df$ejection_fraction,
+                      "Platelets" = df$platelets,
+                      "Serum Creatinine" = df$serum_creatinine,
+                      "Serum Sodium" = df$serum_sodium,
+                      "Follow-up Period" = df$time)
 
-    label <- switch(input$quantVar,
-                    "Age" = "Age of patient (years)",
-                    "CPK" = "Level of CPK enzyme in blood(mcg/L)",
-                    "Ejection Fraction" = "% of blood leaving the heart at each contraction (%)",
-                    "Platelets" = "Platelets in the blood (kiloplatelets/mL)",
-                    "Serum Creatinine" = "Level of serum creatinine in blood (mg/dL)",
-                    "Serum Sodium" = "Level of serum sodium in blood(mEq/L)",
-                    "Follow-up Period" = "Follow-up Period (days)")
+        label <- switch(input$quantVar,
+                        "Age" = "Age of patient (years)",
+                        "CPK" = "Level of CPK enzyme in blood(mcg/L)",
+                        "Ejection Fraction" = "% of blood leaving the heart at each contraction (%)",
+                        "Platelets" = "Platelets in the blood (kiloplatelets/mL)",
+                        "Serum Creatinine" = "Level of serum creatinine in blood (mg/dL)",
+                        "Serum Sodium" = "Level of serum sodium in blood(mEq/L)",
+                        "Follow-up Period" = "Follow-up Period (days)")
 
-    g <- ggplot(df, aes(x = var)) +
-      geom_histogram(bins = input$bins) +
-      xlab(label) +
-      theme(axis.title = element_text(size = 15))
+        g <- ggplot(df, aes(x = var)) +
+          geom_histogram(bins = input$bins) +
+          xlab(label) +
+          theme(axis.title = element_text(size = 15))
 
-    hist <- if(input$survival){
-      g  + facet_wrap(~DEATH_EVENT, scales = "free")
-    } else {
-      g
-    }
-  })
+        hist <- if(input$survival){
+          g  + facet_wrap(~DEATH_EVENT, scales = "free")
+        } else {
+          g
+        }
+    })
 
-
+    # Output histogram
     output$histPlot <- renderPlot({
-      print(plotInput())
-    })
-
-
-    output$down <- downloadHandler(
-      filename = 'histogram.png',
-      content = function(file) {
-        png(file)
         print(plotInput())
-        dev.off()
     })
 
+    # Output download button for histogram
+    output$down <- downloadHandler(
+        filename = 'histogram.png',
+        content = function(file) {
+          png(file)
+          print(plotInput())
+          dev.off()
+    })
+
+    # Update histogram binsize slider based on user input for deceased vs. survived
+    observeEvent(input$survival, {updateSliderInput(session, "bins",
+                                                    min = if(input$survival == FALSE){10}else{15},
+                                                    max = if(input$survival == FALSE){35}else{40})})
 
 
-    #create table
-    #summary statistics on variable selected by user rounded to the digit also selected by user
+    # Table title
+    output$EDAtbl <- renderText({
+      if(input$varType == "Quantitative"){
+        print("Summary Statistics of Quantitative Variables")
+      } else{
+        paste("Contingency Table between Variable ", input$qualVar, " and the Response")
+        }
+    })
+
+    # Create table
+    # Summary statistics on variable selected by user rounded to the digit also selected by user
     output$desctable <- renderPrint({
-      qual.var <- switch(input$qualVar,
+        qual.var <- switch(input$qualVar,
                     "Anaemia" = df$anaemia,
                     "Diabetes" = df$diabetes,
                     "High Blood Pressure" = df$high_blood_pressure,
                     "Sex" = df$sex,
                     "Smoking" = df$smoking)
 
-      if(input$varType == "Quantitative"){
-        df.quant <- df %>%
-          select(age, creatinine_phosphokinase, ejection_fraction, platelets, serum_creatinine, serum_sodium, time)
-        summary(df.quant)
-        } else{
-          if(input$addmargins){
-            addmargins(table(qual.var, df$DEATH_EVENT))
-            } else{
-              table(qual.var, df$DEATH_EVENT)
-              }
-          }
-      })
+        if(input$varType == "Quantitative"){
+          df.quant <- df %>%
+            select(age, creatinine_phosphokinase, ejection_fraction, platelets, serum_creatinine, serum_sodium, time)
+          summary(df.quant)
+          } else{
+            # Contingency table for the qualitative variables
+            if(input$addmargins){
+              addmargins(table(qual.var, df$DEATH_EVENT))
+              } else{
+                table(qual.var, df$DEATH_EVENT)
+                }
+            }
+    })
 
 
 # Unsupervised Learning

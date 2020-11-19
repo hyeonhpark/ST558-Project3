@@ -110,7 +110,7 @@ dashboardPage(
                             sidebarPanel(
 
                                 # Plot: Histogram
-                                h2("Histogram Attributes"),
+                                h3("Histogram Attributes"),
                                 selectizeInput("quantVar", h4("Select Variable"),
                                                choices = list("Age", "CPK", "Ejection Fraction", "Platelets",
                                                               "Serum Creatinine", "Serum Sodium", "Follow-up Period"),
@@ -128,9 +128,11 @@ dashboardPage(
                                 br(),
                                 br(),
                                 br(),
+                                br(),
+                                br(),
 
                                 # Table: Quantitative Summary
-                                h2("Table Attributes"),
+                                h3("Table Attributes"),
                                 selectInput("varType", h4("Select Variable Type"),
                                             choices = list("Qualitative", "Quantitative"),
                                             selected = "Quantitative"),
@@ -146,13 +148,13 @@ dashboardPage(
                             # Show Histogram and Tables
                             mainPanel(
 
-                                h1("Histogram"),
+                                h1(textOutput("histTitle")),
                                 plotOutput("histPlot"),
 
                                 br(),
                                 br(),
 
-                                textOutput("EDAtbl"),
+                                h1(textOutput("EDAtbl")),
                                 verbatimTextOutput("desctable")
                             )
                         )
