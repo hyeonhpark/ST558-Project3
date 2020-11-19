@@ -276,10 +276,13 @@ dashboardPage(
                                                                  selected = "Logistic Full Model"))),
 
                                              fluidRow(
+
+                                                 withMathJax(),
+
                                                  column(
                                                      width = 6,
 
-                                                     h4("Default values of the quantitative variables were selected based on the mean of each variable."),
+                                                     h4("Default values of the quantitative variables were selected based on the \\(\\mu\\) of each variable."),
                                                      h3("Quantitative Variable Input Panel"),
                                                      sliderInput("age", "Age of patient (years)",
                                                                  value = 60, min = 40, max = 100, step = 1),
