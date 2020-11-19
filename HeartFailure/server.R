@@ -81,7 +81,7 @@ shinyServer(function(input, output, session) {
       if(input$varType == "Quantitative"){
         print("Summary Statistics of Quantitative Variables")
       } else{
-        paste("Contingency Table between Variable ", input$qualVar, " and the Response")
+        paste("Contingency Table: Variable ", input$qualVar, " X Patient Status")
         }
     })
 
@@ -102,16 +102,23 @@ shinyServer(function(input, output, session) {
           } else{
             # Contingency table for the qualitative variables
             if(input$addmargins){
-              addmargins(table(qual.var, df$DEATH_EVENT))
+
+              df.cont <- as.data.frame(cbind(qual.var, df$DEATH_EVENT))
+              colnames(df.cont) <- c(input$qualVar, "Patient Status")
+
+              addmargins(table(df.cont[,1],df.cont[,2]))
+
               } else{
-                table(qual.var, df$DEATH_EVENT)
+                df.cont <- as.data.frame(cbind(qual.var, df$DEATH_EVENT))
+                colnames(df.cont) <- c(input$qualVar, "Patient Status")
+                table(df.cont[,1],df.cont[,2])
                 }
             }
     })
 
 
-# Unsupervised Learning
-    #df of only quantitative predictor variables
+    # Unsupervised Learning
+    # df of only quantitative predictor variables
     df.quant <- df %>%
     select(age, creatinine_phosphokinase, ejection_fraction, platelets,
            serum_creatinine, serum_sodium, time)
@@ -148,7 +155,7 @@ shinyServer(function(input, output, session) {
     # BiPlot
     ranges <- reactiveValues(x = NULL, y = NULL)
     df.biplot <- df
-    df.biplot$DEATH_EVENT <- as.factor(df$DEATH_EVENT)
+    df.biplot$PatientStatus <- ifelse(df$DEATH_EVENT == 1, "Deceased", "Survived")
 
     output$PCAbiPlot <- renderPlot({
 
@@ -158,7 +165,7 @@ shinyServer(function(input, output, session) {
         pr.out <- prcomp(df, scale = TRUE)
       }
 
-      autoplot(pr.out, data = df.biplot, colour = 'DEATH_EVENT',
+      autoplot(pr.out, data = df.biplot, colour = 'PatientStatus',
                loadings = TRUE, loadings.colour = "blue",
                loadings.label = TRUE, loadings.label.colour = "blue",
                loadings.label.size = 4) +
@@ -179,8 +186,9 @@ shinyServer(function(input, output, session) {
     })
 
 
-# Supervised Learning
+    # Supervised Learning
 
+    # Separate training vs. test data sets
     set.seed(1)
     train <- sample(1:nrow(df), size = nrow(df)*.7)
     test <- dplyr::setdiff(1:nrow(df), train)
@@ -188,7 +196,12 @@ shinyServer(function(input, output, session) {
     df.train <- df[train, ]
     df.test <- df[test, ]
 
+    # Logistic Model Tab Title
+    output$logitTabTitle <- renderText({
+      paste("Summary of ", input$logitModel, " Fit")
+    })
 
+    # Logistic Fit Summary
     output$logitSummary <- renderPrint({
       # Logitstic Model Fits
       glm.full <- glm(DEATH_EVENT ~., data = df.train, family = binomial)
@@ -201,6 +214,7 @@ shinyServer(function(input, output, session) {
 
     })
 
+    # Confusion Matrix
     output$logitTestConf <- renderTable({
       glm.full <- glm(DEATH_EVENT ~., data = df.train, family = binomial)
       glm.best <- bestglm::bestglm(df.train, IC = "AIC")
@@ -216,7 +230,10 @@ shinyServer(function(input, output, session) {
         pred.best <- rep(0, nrow(df.test))
         pred.best[probs.best > 0.5] <- 1
 
-        table(pred.best, df.test$DEATH_EVENT)
+        df.cont <- as.data.frame(cbind(pred.best, df.test$DEATH_EVENT))
+        colnames(df.cont) <- c("Predicted", "Patient Status")
+        table(df.cont$Predicted, df.cont$`Patient Status`)
+
       } else{
         # Training Error Rate
         probs.best <- predict(logitModel, newdata = df.train,
@@ -224,11 +241,13 @@ shinyServer(function(input, output, session) {
         pred.best <- rep(0, nrow(df.train))
         pred.best[probs.best > 0.5] <- 1
 
-        table(pred.best, df.train$DEATH_EVENT)
-      }
+        df.cont <- as.data.frame(cbind(pred.best, df.train$DEATH_EVENT))
+        colnames(df.cont) <- c("Predicted", "Patient Status")
+        table(df.cont$Predicted, df.cont$`Patient Status`)      }
 
     })
 
+    # Error Rates
     output$logitTestError <- renderText({
       glm.full <- glm(DEATH_EVENT ~., data = df.train, family = binomial)
       glm.best <- bestglm::bestglm(df.train, IC = "AIC")
@@ -261,6 +280,7 @@ shinyServer(function(input, output, session) {
 
     })
 
+    # Random Forest Model Fit Summary
     output$rfSummary <- renderPrint({
       # Random Forest Model Fits
       fit.rf <- randomForest(as.factor(DEATH_EVENT) ~ ., data = df.train, ntree = input$ntree, importance = TRUE)
@@ -268,28 +288,39 @@ shinyServer(function(input, output, session) {
       print(fit.rf)
     })
 
+    # Generate Variance of Importance Plot
     output$rfVarImpPlot <- renderPlot({
       fit.rf <- randomForest(as.factor(DEATH_EVENT) ~ ., data = df.train, ntree = input$ntree, importance = TRUE)
       varImpPlot(fit.rf,type=1)
     })
 
-
+    # Confusion Matrix
     output$rfTestConf <- renderTable({
       fit.rf <- randomForest(as.factor(DEATH_EVENT) ~ ., data = df.train, ntree = input$ntree, importance = TRUE)
 
       if(input$rfTest == "Test Data"){
         # Test Error Rate
         pred <- predict(fit.rf, df.test, type = "response")
+
+        df.cont <- as.data.frame(cbind(pred, df.test$DEATH_EVENT))
+        colnames(df.cont) <- c("Predicted", "Patient Status")
+        table(df.cont$Predicted, df.cont$`Patient Status`)
+
         table(pred, df.test$DEATH_EVENT)
       } else{
         # Training Error Rate
         pred <- predict(fit.rf, df.train, type = "response")
-        table(pred, df.train$DEATH_EVENT)
-      }
+
+
+        df.cont <- as.data.frame(cbind(pred, df.train$DEATH_EVENT))
+        colnames(df.cont) <- c("Predicted", "Patient Status")
+        table(df.cont$Predicted, df.cont$`Patient Status`)
+        }
 
 
     })
 
+    # Error Rate
     output$rfTestError <- renderText({
       fit.rf <- randomForest(as.factor(DEATH_EVENT) ~ ., data = df.train, ntree = input$ntree, importance = TRUE)
 
@@ -309,6 +340,7 @@ shinyServer(function(input, output, session) {
 
     })
 
+    # Make Predictions for User-Provided Predictor Variable Values
     output$predictTbl <- renderTable({
       glm.full <- glm(DEATH_EVENT ~., data = df.train, family = binomial)
       glm.best <- bestglm::bestglm(df.train, IC = "AIC")

@@ -121,15 +121,12 @@ dashboardPage(
                                             min = 10, max = 35, value = 20, step = 5),
 
                                 br(),
-                                downloadButton(outputId = "down", label = "Download the histogram"),
+                                downloadButton(outputId = "down", label = "Download Histogram"),
                                 br(),
                                 br(),
                                 br(),
                                 br(),
-                                br(),
-                                br(),
-                                br(),
-                                br(),
+
 
                                 # Table: Quantitative Summary
                                 h3("Table Attributes"),
@@ -166,16 +163,23 @@ dashboardPage(
             tabItem(tabName = "unsuperv",
 
                     fluidPage(
-                        # Application title
-                        titlePanel(""),
+                        # Section title
+                        h1("Principal Component Analysis (PCA)"),
+                        br(),
 
-                        checkboxInput("quantOnly", "Select only quantitative variables?"),
+                        h4("Generally, PCA is performed on scaled quantitative variables. On this app, you're given the option to use only the quantitative variables for PCA or to use all 12 predictor variables. Click on the checkbox below to only use the quantitative variables for the analysis."),
 
+                        checkboxInput("quantOnly", "Select quantitative variables only."),
+
+                        h2("Summary of PCA"),
                         verbatimTextOutput("PCAsummary"),
+
+                        h2("Visualization of Proportion of Variance Explained (PVE) by Principal Components"),
                         plotOutput("PVEplot"),
 
                         br(),
 
+                        h2("PCA Biplot"),
                         h4("Brush and double-click to zoom"),
                         plotOutput("PCAbiPlot",
                                    dblclick = "PCAbiPlot_dblclick",
@@ -190,56 +194,67 @@ dashboardPage(
             #Supervised Learning
             tabItem(tabName = "superv",
 
-                            fluidPage(tabsetPanel(
-                                tabPanel("Logistic Regression",
-                                         sidebarLayout(
-                                             sidebarPanel(
-                                                 # Logistic Regression Options
-                                                 h3("Model: Logistic Regression"),
-                                                 selectInput("logitModel", "Select Model",
-                                                             choices = list("Full Model", "Best-Subset Model"),
-                                                             selected = "Full Model"),
-                                                 br(),
-                                                 br(),
-                                                 selectInput("logitTest", "Training vs. Test Data",
-                                                             choices = list("Training Data", "Test Data"),
-                                                             selected = "Test Data"),
-                                                 h3("Confusion Matrix"),
-                                                 tableOutput("logitTestConf"),
-                                                 h3("Error Rate"),
-                                                 textOutput("logitTestError")
-                                             ),
+                    fluidPage(
+                        tabsetPanel(
+                            tabPanel(
+                                "Logistic Regression",
+                                sidebarLayout(
+                                    sidebarPanel(
 
-                                             # Show a plot of the generated distribution
-                                             mainPanel(
+                                        # Logistic Regression Options
+                                        h3("Logistic Regression Models"),
+                                        selectInput("logitModel", h4("Select Model"),
+                                                    choices = list("Full Model", "Best-Subset Model"),
+                                                    selected = "Full Model"),
+                                        br(),
+                                        br(),
+                                        br(),
 
-                                                 verbatimTextOutput("logitSummary")
-                                             )
-                                         )
-                                ),
+                                        h3("Training vs. Test Prediction Accuracy"),
+                                        selectInput("logitTest", h4("Training vs. Test Data"),
+                                                    choices = list("Training Data", "Test Data"),
+                                                    selected = "Test Data"),
+                                        #h4("Confusion Matrix"),
+                                        #tableOutput("logitTestConf"),
+                                        h4("Error Rate"),
+                                        h4(textOutput("logitTestError"))
+                                    ),
 
-                                tabPanel("Random Forest",
+                                    # Display summary of logistic regression fit
+                                    mainPanel(
+
+                                        h1(textOutput("logitTabTitle")),
+                                        verbatimTextOutput("logitSummary")
+                                    )
+                                )
+                            ),
+
+
+                            tabPanel("Random Forest",
                                          sidebarLayout(
                                              sidebarPanel(
 
                                                  h3("Model: Random Forest"),
-                                                 numericInput("ntree", "Number of Trees",
+                                                 numericInput("ntree", h4("Number of Trees"),
                                                               value = 500, min = 200, max = 1000, step = 100),
                                                  br(),
                                                  br(),
-                                                 selectInput("rfTest", "Training vs. Test Data",
+                                                 selectInput("rfTest", h4("Training vs. Test Data"),
                                                              choices = list("Training Data", "Test Data"),
                                                              selected = "Test Data"),
-                                                 h3("Confusion Matrix"),
-                                                 tableOutput("rfTestConf"),
-                                                 h3("Error Rate"),
-                                                 textOutput("rfTestError")
+                                                 #h3("Confusion Matrix"),
+                                                 #tableOutput("rfTestConf"),
+                                                 h4("Error Rate"),
+                                                 h4(textOutput("rfTestError"))
                                              ),
 
                                              # Show a plot of the generated distribution
                                              mainPanel(
 
+                                                 h1("Summary of Random Forest Classification Model Fit"),
                                                  verbatimTextOutput("rfSummary"),
+                                                 br(),
+                                                 h1("Variable of Importance Plot"),
                                                  plotOutput("rfVarImpPlot")
 
                                              )
@@ -248,70 +263,99 @@ dashboardPage(
 
                                 tabPanel("Prediction",
 
-                                         fluidPage(
-                                             fluidRow(column(width = 12,
-                                                             h3("Model Selection"),
-                                                             selectInput("model", "Select Model for Prediction",
-                                                                         choices = list("Logistic Full Model", "Logistic Best-Subset Model", "Random Forest Model"),
-                                                                         selected = "Logistic Full Model"))),
+                                         h1("Prediction Simulation"),
+                                         h4("Predict the status of a patient with values of predictor values that you select. Result can be found at the bottom of the page."),
 
-                                             fluidRow(column(width = 4,
-                                                             h3("Quantitative Variable Input Panel"),
-                                                             sliderInput("age", "Age of patient (years)",
-                                                                         value = 60, min = 40, max = 100, step = 1),
-                                                             sliderInput("CPK", "Level of CPK enzyme in blood(mcg/L)",
-                                                                         value = 580 , min = 20, max = 1000, step = 20),
-                                                             sliderInput("EF", "% of blood leaving the heart at each contraction (%)",
-                                                                         value = 40, min = 10, max = 80, step = 20),
-                                                             sliderInput("platelets", "Platelets in the blood (kiloplatelets/mL)",
-                                                                         value = 250, min = 25, max = 900, step = 25),
-                                                             sliderInput("serumC", "Level of serum creatinine in blood (mg/dL)",
-                                                                         value = 1.5, min = 0.5, max = 10, step = 0.5),
-                                                             sliderInput("serumS", "Level of serum sodium in blood(mEq/L)",
-                                                                         value = 135, min = 110, max = 150, step = 5),
-                                                             sliderInput("time", "Follow-up Period (days)",
-                                                                         value = 130, min = 1, max = 290, step = 10)),
-                                                      column(width = 4,
-                                                             h3("Qualitative Variable Input Panel"),
-                                                             radioButtons("anaemia", "Has anaemia?",
-                                                                          choices = list("Yes" = 1, "No" = 2), selected = 1),
-                                                             radioButtons("diabetes", "Has diabetes?",
-                                                                          choices = list("Yes" = 1, "No" = 2), selected = 1),
-                                                             radioButtons("HBP", "Has high blood pressure?",
-                                                                          choices = list("Yes" = 1, "No" = 2), selected = 1),
-                                                             radioButtons("sex", "Sex",
-                                                                          choices = list("Male" = 1, "Female" = 2), selected = 1),
-                                                             radioButtons("smoking", "Smoking History",
-                                                                          choices = list("Yes" = 1, "No" = 2), selected = 1))),
-                                             fluidRow(column(width = 12,
-                                                             h3("Selected Input and Prediction Result"),
-                                                             tableOutput("predictTbl")))
-                                         )
+                                         fluidPage(
+                                             fluidRow(
+                                                 column(
+                                                     width = 12,
+                                                     h3("Model Selection"),
+                                                     selectInput("model", h4("Select Model for Prediction"),
+                                                                 choices = list("Logistic Full Model", "Logistic Best-Subset Model", "Random Forest Model"),
+                                                                 selected = "Logistic Full Model"))),
+
+                                             fluidRow(
+                                                 column(
+                                                     width = 6,
+
+                                                     h4("Default values of the quantitative variables were selected based on the mean of each variable."),
+                                                     h3("Quantitative Variable Input Panel"),
+                                                     sliderInput("age", "Age of patient (years)",
+                                                                 value = 60, min = 40, max = 100, step = 1),
+                                                     sliderInput("CPK", "Level of CPK enzyme in blood(mcg/L)",
+                                                                 value = 580 , min = 20, max = 1000, step = 20),
+                                                     sliderInput("EF", "% of blood leaving the heart at each contraction (%)",
+                                                                 value = 40, min = 10, max = 80, step = 20),
+                                                     sliderInput("platelets", "Platelets in the blood (kiloplatelets/mL)",
+                                                                 value = 250, min = 25, max = 900, step = 25),
+                                                     sliderInput("serumC", "Level of serum creatinine in blood (mg/dL)",
+                                                                 value = 1.5, min = 0.5, max = 10, step = 0.5),
+                                                     sliderInput("serumS", "Level of serum sodium in blood(mEq/L)",
+                                                                 value = 135, min = 110, max = 150, step = 5),
+                                                     sliderInput("time", "Follow-up Period (days)",
+                                                                 value = 130, min = 1, max = 290, step = 10)),
+
+                                                 column(
+                                                     width = 6,
+                                                     h3("Qualitative Variable Input Panel"),
+                                                     radioButtons("anaemia", "Has anaemia?",
+                                                                  choices = list("Yes" = 1, "No" = 2), selected = 1),
+                                                     radioButtons("diabetes", "Has diabetes?",
+                                                                  choices = list("Yes" = 1, "No" = 2), selected = 1),
+                                                     radioButtons("HBP", "Has high blood pressure?",
+                                                                  choices = list("Yes" = 1, "No" = 2), selected = 1),
+                                                     radioButtons("sex", "Sex",
+                                                                  choices = list("Male" = 1, "Female" = 2), selected = 1),
+                                                     radioButtons("smoking", "Smoking History",
+                                                                  choices = list("Yes" = 1, "No" = 2), selected = 1))),
+
+                                             fluidRow(
+                                                 column(
+                                                     width = 12,
+                                                     h3("Selected Input and Prediction Result"),
+                                                     tableOutput("predictTbl")
+                                                 )
+                                             )
+                                        )
 
                                 )
-
-
-                        ))
+                            )
+                        )
                     ),
 
+
             #Data
-            tabItem(tabName = "data",
-                    fluidPage(
-                        fluidRow(column(width = 12,
-                                        downloadButton("downloadData", "Download Filtered Data"),
-                                        br(),
-                                        varSelectInput("vars", "Variable:",
-                                                       read.csv("https://archive.ics.uci.edu/ml/machine-learning-databases/00519/heart_failure_clinical_records_dataset.csv"),
-                                                       multiple = TRUE))),
+            tabItem(
+                tabName = "data",
 
+                h1("Subset/Filter/Download Data"),
 
-                        fluidRow(column(width = 12,
-                                        DT::dataTableOutput("obs")
-                        ))
+                fluidPage(
+                    fluidRow(
+                        column(
+                            width = 12,
+                            h3("Subset data using variable names."),
+                            varSelectInput("vars", h4("Select variable(s):"),
+                                           read.csv("https://archive.ics.uci.edu/ml/machine-learning-databases/00519/heart_failure_clinical_records_dataset.csv"),
+                                           multiple = TRUE),
+                            br(),
+                            downloadButton("downloadData", "Download Filtered Data"),
+                            br(),
+                            br(),
+                        )
+                    ),
+
+                    fluidRow(
+                        column(
+                            width = 12,
+                            DT::dataTableOutput("obs")
+                        )
                     )
+                )
             )
+        )
     )
-)
 )
 
 
