@@ -1,26 +1,16 @@
-#
-# This is the user-interface definition of a Shiny web application. You can
-# run the application by clicking 'Run App' above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
 library(shiny)
 library(shinydashboard)
 
-
 dashboardPage(
     #add title
-    dashboardHeader(title="Heart failure clinical records",titleWidth=1000),
+    dashboardHeader(title="ST558 Project 3"),
 
     #define sidebar items
     dashboardSidebar(sidebarMenu(
         menuItem("Info Page", tabName = "info"),
         menuItem("Exploratory Data Analysis", tabName = "eda"),
-        menuItem("Unsupervised", tabName = "unsuperv"),
-        menuItem("Supervised", tabName = "superv"),
+        menuItem("Unsupervised Learning - PCA", tabName = "unsuperv"),
+        menuItem("Supervised Learning - Prediction", tabName = "superv"),
         menuItem("Data", tabName = "data")
         )
     ),
@@ -32,16 +22,74 @@ dashboardPage(
             #Info Page
             tabItem(tabName = "info",
 
-                    fluidPage(
-                        # Application title
-                        titlePanel(""),
+                    fluidRow(
+                        column(
+                            width = 5,
 
-                        # Sidebar with a slider input for number of bins
-                        sidebarLayout(
-                            sidebarPanel(),
+                            #Description of App
+                            h1("What does this app do?"),
+                            #box to contain description
+                            box(
+                                width=12,
+                                h4("This application analyzes a dataset of 299 patients with heart failure collected in 2015. Detailed description of the data is provided on the right."),
+                                h4("Plots and tables are generated in the ",span("Exploratory Data Analysis (EDA) ",style = "font-style:italic"), "section to visualize the distribution of the different variables, and principal component analysis (PCA) is performed in the " ,span("Unsupervised Learning ",style = "font-style:italic"), "section to study the relationship between the predictor variables."),
+                                h4("Two supervised learning methods are applied to a training data set, and the resulting models are used to make predictions about the test data set. A subsection is available in the " ,span("Supervised Learning ",style = "font-style:italic"), "section for a user to use the models for predicting the outcome of a random patient with predictor values selected by the user."),
+                                h4("The original data set is available online at the",
+                                   tags$a(href="https://archive.ics.uci.edu/ml/datasets/Heart+failure+clinical+records#", " UCI Machine Learning Repository."), "The data can be also accessed through this app via the " ,span("Data ",style = "font-style:italic"), "section.")
+                            )
+                        ),
 
-                            # Show a plot of the generated distribution
-                            mainPanel()
+                        column(
+                            width = 7,
+
+                            #Description of Variables
+                            h1("Data Description"),
+                            #box to contain description
+                            box(
+                                width = 12,
+                                h4("The Heart Failure Clinical Records data set contains medical records of 299 patients who had heart failure. The data was collected during the patients' follow-up period, and each patient profile has 13 clinical features. The 13 clinical features are as follows: ",
+                                   tags$ul(
+                                       tags$li("age: age of the patient (years)"),
+                                       tags$li("anaemia: decrease of red blood cells or hemoglobin (boolean)"),
+                                       tags$li("high blood pressure: if the patient has hypertension (boolean)"),
+                                       tags$li("creatinine phosphokinase (CPK): level of the CPK enzyme in the blood (mcg/L)"),
+                                       tags$li("diabetes: if the patient has diabetes (boolean)"),
+                                       tags$li("ejection fraction: percentage of blood leaving the heart at each contraction (percentage)"),
+                                       tags$li("platelets: platelets in the blood (kiloplatelets/mL)"),
+                                       tags$li("sex: woman or man (binary)"),
+                                       tags$li("serum creatinine: level of serum creatinine in the blood (mg/dL)"),
+                                       tags$li("serum sodium: level of serum sodium in the blood (mEq/L)"),
+                                       tags$li("smoking: if the patient smokes or not (boolean)"),
+                                       tags$li("time: follow-up period (days)"),
+                                       tags$li("[target] death event: if the patient deceased during the follow-up period (boolean)")
+                                   )
+                                )
+                            )
+                        )
+                    ),
+
+                    fluidRow(
+                        column(
+                            width = 12,
+
+                            #Explanation of controls
+                            h1("How to navigate this app"),
+                            #box to contain description
+                            box(
+                                width = 12,
+                                h4("The controls for the app are generally located on the left of each tab. Specific controls for each tab are described below: "),
+
+                                h3("Exploratory Data Anlaysis (EDA)"),
+                                h4("There are two features on the EDA section: plot and table. The first provides a histogram of each of the quantitative variables from the data. You can select the variable for the histogram from the dropdown menu and click the box below to generate separate histograms for patients who died during the follow-up period and patients who survived. You can also change the bin size of the histograms using the slider. The bin size changes in increments of 5."),
+                                h4("The second feature of the EDA section is a table. You can generate two different types of tables based on the variable type. By default, the table displays summary statistics of all quantitative variables. Choosing the ", span("Qualitative variable type ", style = "font-style:italic"), "from the dropdown menu will prompt another dropdown menu for selecting a specific qualitative variable to view a contingency table. The contingency table displays the frequency distribution of the selected qualitative variable and the target variable (DEATH_EVENT: whether a patient died during their follow-up period). You can check the box below variable selection to add marginal sums to the contingency table."),
+
+                                h3("Unsupervised Learning - PCA"),
+                                h4("An option to only select the quantitative variables is available for the principal component analysis at the top of the Unsupervised Learning section. It is possible to zoom in on the PCA biplot by selecting and double clicking on a region. A second double-click returns the plot to default."),
+
+                                h3("Supervised Learning"),
+                                h4("")
+                            ),
+
                         )
                     )
             ),
@@ -66,7 +114,7 @@ dashboardPage(
                                 checkboxInput("survival", h4("Compare Deceased vs. Survived")),
 
                                 sliderInput("bins", "Size of bins",
-                                            min = 10, max = 35, value = 20),
+                                            min = 10, max = 35, value = 20, step = 5),
                                 br(),
                                 downloadButton(outputId = "down", label = "Download the histogram"),
                                 br(),
@@ -248,7 +296,7 @@ dashboardPage(
                     )
             )
     )
-))
-
+)
+)
 
 
