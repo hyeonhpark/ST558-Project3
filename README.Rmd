@@ -1,13 +1,12 @@
----
-title: "README"
-author: "Hannah Park"
-date: "11/17/2020"
-output: html_document
----
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+# ST558 Project 3  
+
+## Purpose of the Repo  
+This repository was created to keep track of my work related to Project 3 for ST558 at NCSU (Fall 2020). This project involved creating a shiny app that can be used to explore data and model it. Data used for the analysis is from the heart failure clinical records data set, which is publicly available in [https://archive.ics.uci.edu/ml/datasets/Heart+failure+clinical+records#].  
 
 ## Required Packages   
 
@@ -43,6 +42,7 @@ package.check <- lapply(
 ## Run Repo from R Stuido  
 ```{r}
 library(shiny)
-runGitHub(repo = "ST558-Project3", username = "hyeonhpark", ref = "main", subdir = "/HeartFailure/", launch.browser = TRUE)
+runGitHub(repo = "ST558-Project3", username = "hyeonhpark", 
+          ref = "main", subdir = "/HeartFailure/", launch.browser = TRUE)
 ```
 
