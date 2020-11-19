@@ -9,17 +9,34 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## List of packages needed to run the app  
+## Required Packages   
+
+`shiny` - Create shiny app.  
+`shinydashboard` - Utilize tabs in the app.  
+`dplyr` - Data manipulation.  
+`DT` - Create data tables.  
+`knitr` - Generate report.  
+`ggplot2` - Create exploratory plots.  
+`ggfortify` - Create analysis plots.  
+`bestglm` - Perform best subset selection analysis.  
+`randomForest` - Perform random forest classification analysis.  
+
+## Download Required Packages  
 ```{r}
-library(shiny)
-library(dplyr)
-library(DT)
-library(knitr)
-library(ggplot2)
-library(ggfortify)
-library(bestglm)
-library(caret)
-library(randomForest)
+## Packages of interest
+packages = c("shiny", "shinydashboard", "dplyr", "DT", "knitr", 
+             "ggplot2", "ggfortify", "bestglm", "randomForest")
+
+## Load or install&load all
+package.check <- lapply(
+  packages,
+  FUN = function(x) {
+    if (!require(x, character.only = TRUE)) {
+      install.packages(x, dependencies = TRUE)
+      library(x, character.only = TRUE)
+    }
+  }
+)
 ```
 
 
