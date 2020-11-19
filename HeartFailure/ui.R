@@ -10,7 +10,7 @@ dashboardPage(
         menuItem("Info Page", tabName = "info"),
         menuItem("Exploratory Data Analysis", tabName = "eda"),
         menuItem("Unsupervised Learning - PCA", tabName = "unsuperv"),
-        menuItem("Supervised Learning - Prediction", tabName = "superv"),
+        menuItem("Supervised Learning & Prediction", tabName = "superv"),
         menuItem("Data", tabName = "data")
         )
     ),
@@ -86,8 +86,13 @@ dashboardPage(
                                 h3("Unsupervised Learning - PCA"),
                                 h4("An option to only select the quantitative variables is available for the principal component analysis at the top of the Unsupervised Learning section. It is possible to zoom in on the PCA biplot by selecting and double clicking on a region. A second double-click returns the plot to default."),
 
-                                h3("Supervised Learning"),
-                                h4("")
+                                h3("Supervised Learning & Prediction"),
+                                h4("The first two tabs of the Supervise Learning & Prediction section provide the summary of model fits for the logistic regression model and the random forest classification model, respectively. For the logistic regression results, you can select one of the two models that were used to fit the data from the dropdown menu: full model with all 12 predictor variables vs. best subset selection. For the random forest classification results, you can select the number of trees used to fit the data. For both methods, the confusion matrix and the error rate are provided on the bottom left. You can select the type of error rate from the dropdown menu."),
+                                h4("The last tab of the Supervised Learning & Prediction section allows the users to input their own values for the predictor variables and choose one of the three models to make predictions about their selected predictor values. The result can be found at the bottom of the page in a data table format, along with the specific values the user selected for the predictor variables."),
+
+                                h3("Data"),
+                                h4("You can scroll through, subset, and filter the data on the Data section of this app. The filtered data set can be downloaded via the download button found at the top of the page."),
+                                h4("By default, the data table on the Data section shows the first 10 observations of the full data set with an option to filter the data by each variable at the top of the data table. You can also subset the data with specific variables using the dropdown menu below the Download button.")
                             ),
 
                         )
@@ -99,8 +104,6 @@ dashboardPage(
             tabItem(tabName = "eda",
 
                     fluidPage(
-                        # Application title
-                        titlePanel("FIX THIS: Old Faithful Geyser Data"),
 
                         # Sidebar with a slider input for number of bins
                         sidebarLayout(
@@ -287,7 +290,10 @@ dashboardPage(
                     fluidPage(
                         fluidRow(column(width = 12,
                                         downloadButton("downloadData", "Download Filtered Data"),
-                                        varSelectInput("vars", "Variable:", df, multiple = TRUE))),
+                                        br(),
+                                        varSelectInput("vars", "Variable:",
+                                                       read.csv("https://archive.ics.uci.edu/ml/machine-learning-databases/00519/heart_failure_clinical_records_dataset.csv"),
+                                                       multiple = TRUE))),
 
 
                         fluidRow(column(width = 12,
