@@ -34,7 +34,7 @@ package.check <- lapply(
 ```
 
 
-## Run Repo from R Stuido  
+## Run Repo from R Stuo  
 ```{r}
 library(shiny)
 runGitHub(repo = "ST558-Project3", username = "hyeonhpark", 
